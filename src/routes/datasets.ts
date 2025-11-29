@@ -1,12 +1,12 @@
 import { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } from 'fastify';
 import { searchDatasets, transformDatasets } from '../services/dataverse.js';
+import { handleError } from '../utils/errorHandler.js';
 import type { DatasetsQuery } from '../types/index.js';
 
 export async function datasetsRoutes(
   fastify: FastifyInstance,
   _options: FastifyPluginOptions
 ) {
-  // GET /api/datasets - Lista datasets com paginação
   fastify.get<{ Querystring: DatasetsQuery }>(
     '/',
     async (request: FastifyRequest<{ Querystring: DatasetsQuery }>, reply: FastifyReply) => {
@@ -35,18 +35,11 @@ export async function datasetsRoutes(
           data: datasets,
         };
       } catch (error) {
-        fastify.log.error(error);
-        reply.code(500);
-        return {
-          success: false,
-          error: 'Erro ao buscar datasets',
-          message: error instanceof Error ? error.message : 'Erro desconhecido',
-        };
+        return handleError(reply, error, 'Erro ao buscar datasets', fastify.log);
       }
     }
   );
 
-  // GET /api/datasets/latest - Últimos N datasets
   fastify.get<{ Querystring: { limit?: number } }>(
     '/latest',
     async (request: FastifyRequest<{ Querystring: { limit?: number } }>, reply: FastifyReply) => {
@@ -70,18 +63,11 @@ export async function datasetsRoutes(
           data: datasets,
         };
       } catch (error) {
-        fastify.log.error(error);
-        reply.code(500);
-        return {
-          success: false,
-          error: 'Erro ao buscar datasets mais recentes',
-          message: error instanceof Error ? error.message : 'Erro desconhecido',
-        };
+        return handleError(reply, error, 'Erro ao buscar datasets mais recentes', fastify.log);
       }
     }
   );
 
-  // GET /api/datasets/search - Busca datasets
   fastify.get<{ Querystring: { q: string; limit?: number; offset?: number } }>(
     '/search',
     async (
@@ -122,13 +108,7 @@ export async function datasetsRoutes(
           data: datasets,
         };
       } catch (error) {
-        fastify.log.error(error);
-        reply.code(500);
-        return {
-          success: false,
-          error: 'Erro ao buscar datasets',
-          message: error instanceof Error ? error.message : 'Erro desconhecido',
-        };
+        return handleError(reply, error, 'Erro ao buscar datasets', fastify.log);
       }
     }
   );

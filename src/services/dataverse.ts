@@ -16,13 +16,10 @@ import type {
 const DATAVERSE_SEARCH_BASE = 'https://soildata.mapbiomas.org/api/search';
 const DATAVERSE_METRICS_BASE = 'https://soildata.mapbiomas.org/api/info/metrics';
 
-// Funções auxiliares para extrair dados do Dataverse
 function extractValue(value: unknown): string | null {
   if (typeof value === 'string') return value;
   if (typeof value === 'number') return value.toString();
-  if (Array.isArray(value)) {
-    return extractValue(value[0]);
-  }
+  if (Array.isArray(value)) return extractValue(value[0]);
   if (value && typeof value === 'object' && 'value' in value) {
     return extractValue((value as { value: unknown }).value);
   }
@@ -92,10 +89,7 @@ function formatDate(dateString: string | undefined): string {
   try {
     const date = new Date(dateString);
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const year = date.getFullYear();
-    const month = months[date.getMonth()];
-    const day = date.getDate();
-    return `${year} ${month} ${day}`;
+    return `${date.getFullYear()} ${months[date.getMonth()]} ${date.getDate()}`;
   } catch {
     return dateString;
   }
@@ -126,7 +120,6 @@ function transformToDataset(item: DataverseItem): Dataset {
   
   const authors = extractAuthors(item);
   const summary = extractSummary(item);
-  
   const version = findFieldValue(allFields, ['version', 'datasetVersion']) || 'V1';
 
   return {
@@ -140,12 +133,9 @@ function transformToDataset(item: DataverseItem): Dataset {
   };
 }
 
-// Função auxiliar para fazer requisições ao Dataverse
 async function fetchDataverse<T>(url: string): Promise<T> {
   const response = await fetch(url, {
-    headers: {
-      Accept: 'application/json',
-    },
+    headers: { Accept: 'application/json' },
   });
 
   if (!response.ok) {
@@ -153,33 +143,24 @@ async function fetchDataverse<T>(url: string): Promise<T> {
   }
 
   const data = await response.json() as DataverseApiResponse<T> | T;
-  // A API retorna {status: "OK", data: {...}}
   if (data && typeof data === 'object' && 'data' in data) {
     return (data as DataverseApiResponse<T>).data as T;
   }
   return data as T;
 }
 
-// Função para construir URL de métricas
 function buildMetricsUrl(endpoint: string, params?: MetricsApiParams): string {
   const url = new URL(`${DATAVERSE_METRICS_BASE}${endpoint}`);
   
   if (params) {
-    if (params.parentAlias) {
-      url.searchParams.set('parentAlias', params.parentAlias);
-    }
-    if (params.dataLocation) {
-      url.searchParams.set('dataLocation', params.dataLocation);
-    }
-    if (params.country) {
-      url.searchParams.set('country', params.country);
-    }
+    if (params.parentAlias) url.searchParams.set('parentAlias', params.parentAlias);
+    if (params.dataLocation) url.searchParams.set('dataLocation', params.dataLocation);
+    if (params.country) url.searchParams.set('country', params.country);
   }
   
   return url.toString();
 }
 
-// Serviços de Datasets
 export async function searchDatasets(params: {
   q?: string;
   limit?: number;
@@ -205,79 +186,62 @@ export function transformDatasets(items: DataverseItem[]): Dataset[] {
   return items.map(transformToDataset);
 }
 
-// Serviços de Métricas
 export async function getTotalDatasets(params?: MetricsApiParams): Promise<MetricCount> {
-  const url = buildMetricsUrl('/datasets', params);
-  return fetchDataverse<MetricCount>(url);
+  return fetchDataverse<MetricCount>(buildMetricsUrl('/datasets', params));
 }
 
 export async function getTotalDownloads(params?: MetricsApiParams): Promise<MetricCount> {
-  const url = buildMetricsUrl('/downloads', params);
-  return fetchDataverse<MetricCount>(url);
+  return fetchDataverse<MetricCount>(buildMetricsUrl('/downloads', params));
 }
 
 export async function getTotalFiles(params?: MetricsApiParams): Promise<MetricCount> {
-  const url = buildMetricsUrl('/files', params);
-  return fetchDataverse<MetricCount>(url);
+  return fetchDataverse<MetricCount>(buildMetricsUrl('/files', params));
 }
 
 export async function getTotalDataverses(params?: MetricsApiParams): Promise<MetricCount> {
-  const url = buildMetricsUrl('/dataverses', params);
-  return fetchDataverse<MetricCount>(url);
+  return fetchDataverse<MetricCount>(buildMetricsUrl('/dataverses', params));
 }
 
 export async function getMonthlyDownloads(params?: MetricsApiParams): Promise<MonthlyMetric[]> {
-  const url = buildMetricsUrl('/downloads/monthly', params);
-  return fetchDataverse<MonthlyMetric[]>(url);
+  return fetchDataverse<MonthlyMetric[]>(buildMetricsUrl('/downloads/monthly', params));
 }
 
 export async function getMonthlyDatasets(params?: MetricsApiParams): Promise<MonthlyMetric[]> {
-  const url = buildMetricsUrl('/datasets/monthly', params);
-  return fetchDataverse<MonthlyMetric[]>(url);
+  return fetchDataverse<MonthlyMetric[]>(buildMetricsUrl('/datasets/monthly', params));
 }
 
 export async function getMonthlyFiles(params?: MetricsApiParams): Promise<MonthlyMetric[]> {
-  const url = buildMetricsUrl('/files/monthly', params);
-  return fetchDataverse<MonthlyMetric[]>(url);
+  return fetchDataverse<MonthlyMetric[]>(buildMetricsUrl('/files/monthly', params));
 }
 
 export async function getDownloadsPastDays(days: number, params?: MetricsApiParams): Promise<MetricCount> {
-  const url = buildMetricsUrl(`/downloads/pastDays/${days}`, params);
-  return fetchDataverse<MetricCount>(url);
+  return fetchDataverse<MetricCount>(buildMetricsUrl(`/downloads/pastDays/${days}`, params));
 }
 
 export async function getDatasetsPastDays(days: number, params?: MetricsApiParams): Promise<MetricCount> {
-  const url = buildMetricsUrl(`/datasets/pastDays/${days}`, params);
-  return fetchDataverse<MetricCount>(url);
+  return fetchDataverse<MetricCount>(buildMetricsUrl(`/datasets/pastDays/${days}`, params));
 }
 
 export async function getDatasetsBySubject(params?: MetricsApiParams): Promise<DatasetBySubject[]> {
-  const url = buildMetricsUrl('/datasets/bySubject', params);
-  return fetchDataverse<DatasetBySubject[]>(url);
+  return fetchDataverse<DatasetBySubject[]>(buildMetricsUrl('/datasets/bySubject', params));
 }
 
 export async function getDataversesByCategory(params?: MetricsApiParams): Promise<DatasetByCategory[]> {
-  const url = buildMetricsUrl('/dataverses/byCategory', params);
-  return fetchDataverse<DatasetByCategory[]>(url);
+  return fetchDataverse<DatasetByCategory[]>(buildMetricsUrl('/dataverses/byCategory', params));
 }
 
 export async function getFileDownloads(params?: MetricsApiParams): Promise<FileDownload[]> {
   try {
-    const url = buildMetricsUrl('/filedownloads', params);
-    return await fetchDataverse<FileDownload[]>(url);
+    return await fetchDataverse<FileDownload[]>(buildMetricsUrl('/filedownloads', params));
   } catch {
-    // Silenciosamente retornar array vazio se houver erro (especialmente 500)
     return [];
   }
 }
 
 export async function getMonthlyFileDownloads(params?: MetricsApiParams): Promise<MonthlyFileDownload[]> {
-  const url = buildMetricsUrl('/filedownloads/monthly', params);
-  return fetchDataverse<MonthlyFileDownload[]>(url);
+  return fetchDataverse<MonthlyFileDownload[]>(buildMetricsUrl('/filedownloads/monthly', params));
 }
 
 export async function getDataverseTree(params?: MetricsApiParams): Promise<TreeDataverse[]> {
-  const url = buildMetricsUrl('/tree', params);
-  return fetchDataverse<TreeDataverse[]>(url);
+  return fetchDataverse<TreeDataverse[]>(buildMetricsUrl('/tree', params));
 }
-

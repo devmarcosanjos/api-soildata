@@ -1,89 +1,62 @@
 import Fastify, { FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
+import { config } from './config/index.js';
 import { routes } from './routes/index.js';
 
 const fastify: FastifyInstance = Fastify({
   logger: {
-    level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-    transport:
-      process.env.NODE_ENV === 'development'
-        ? {
-            target: 'pino-pretty',
-            options: {
-              translateTime: 'HH:MM:ss Z',
-              ignore: 'pid,hostname',
-              colorize: true,
-            },
-          }
-        : undefined,
+    level: config.logger.level,
+    transport: config.logger.pretty
+      ? {
+          target: 'pino-pretty',
+          options: {
+            translateTime: 'HH:MM:ss Z',
+            ignore: 'pid,hostname',
+            colorize: true,
+          },
+        }
+      : undefined,
   },
 });
 
-// Registrar plugins
 async function registerPlugins() {
-  // CORS - Configurável via variável de ambiente
-  const allowedOrigins = process.env.CORS_ORIGINS
-    ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
-    : process.env.NODE_ENV === 'production'
-    ? ['https://soildata.cmob.online'] // Default para produção
-    : true; // Em desenvolvimento, permite todas as origens
-
-  // Log da configuração de CORS para diagnóstico
-  if (process.env.NODE_ENV === 'production') {
-    fastify.log.info('🔒 CORS configurado para produção');
-    if (Array.isArray(allowedOrigins)) {
-      fastify.log.info(`   Origens permitidas: ${allowedOrigins.join(', ')}`);
-    } else {
-      fastify.log.info('   Todas as origens permitidas (desenvolvimento)');
-    }
-  }
-
   await fastify.register(cors, {
-    origin: allowedOrigins,
+    origin: config.cors.origins,
     credentials: true,
-    methods: ['GET',],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    methods: ['GET', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Accept'],
   });
 }
 
-// Registrar rotas
 async function registerRoutes() {
   await fastify.register(routes);
 }
 
-// Iniciar servidor
-const start = async () => {
+async function start() {
   try {
     await registerPlugins();
     await registerRoutes();
 
-    const port = Number(process.env.PORT) || 3000;
-    const host = process.env.HOST || '0.0.0.0';
+    await fastify.listen({
+      port: config.server.port,
+      host: config.server.host,
+    });
 
-    await fastify.listen({ port, host });
-    console.log(`🚀 API SoilData rodando em http://${host}:${port}`);
-    console.log(`📚 Health check: http://${host}:${port}/health`);
-    console.log(`📊 Endpoints disponíveis:`);
-    console.log(`   - GET /api/datasets - Últimos datasets`);
-    console.log(`   - GET /api/soil-data - Dados de solo`);
-    console.log(`   - GET /api/metrics - Métricas`);
-    console.log(`   - GET /api/statistics - Estatísticas`);
+    console.log(`API SoilData running on http://${config.server.host}:${config.server.port}`);
+    console.log(`Environment: ${config.env.nodeEnv}`);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
   }
+}
+
+const shutdown = async () => {
+  await fastify.close();
+  process.exit(0);
 };
 
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  await fastify.close();
-  process.exit(0);
-});
-
-process.on('SIGINT', async () => {
-  await fastify.close();
-  process.exit(0);
-});
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
 
 start();
 

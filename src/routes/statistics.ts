@@ -7,15 +7,14 @@ import {
   getMonthlyDownloads,
   getMonthlyDatasets,
 } from '../services/dataverse.js';
+import { handleError } from '../utils/errorHandler.js';
 
 export async function statisticsRoutes(
   fastify: FastifyInstance,
   _options: FastifyPluginOptions
 ) {
-  // GET /api/statistics - Estatísticas gerais combinadas
   fastify.get('/', async (_request: FastifyRequest, reply: FastifyReply) => {
     try {
-      // Buscar estatísticas de solo e métricas do Dataverse em paralelo
       const [soilStats, soilSummary, totalDatasets, totalDownloads, totalFiles] = await Promise.all([
         getSoilDataStats(),
         getSoilDataSummary(),
@@ -48,17 +47,10 @@ export async function statisticsRoutes(
         },
       };
     } catch (error) {
-      fastify.log.error(error);
-      reply.code(500);
-      return {
-        success: false,
-        error: 'Erro ao buscar estatísticas',
-        message: error instanceof Error ? error.message : 'Erro desconhecido',
-      };
+      return handleError(reply, error, 'Erro ao buscar estatísticas', fastify.log);
     }
   });
 
-  // GET /api/statistics/monthly - Estatísticas mensais combinadas
   fastify.get('/monthly', async (_request: FastifyRequest, reply: FastifyReply) => {
     try {
       const [monthlyDownloads, monthlyDatasets] = await Promise.all([
@@ -74,14 +66,7 @@ export async function statisticsRoutes(
         },
       };
     } catch (error) {
-      fastify.log.error(error);
-      reply.code(500);
-      return {
-        success: false,
-        error: 'Erro ao buscar estatísticas mensais',
-        message: error instanceof Error ? error.message : 'Erro desconhecido',
-      };
+      return handleError(reply, error, 'Erro ao buscar estatísticas mensais', fastify.log);
     }
   });
 }
-

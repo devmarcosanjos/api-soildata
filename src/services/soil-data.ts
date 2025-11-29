@@ -1,23 +1,20 @@
 import { readFile } from 'fs/promises';
-import { join } from 'path';
+import { config } from '../config/index.js';
 import type { EnrichedPoint, EnrichedSoilData, SoilDataQuery } from '../types/index.js';
 
-// Caminho padrão para o arquivo JSON (pode ser configurado via env)
-const DEFAULT_DATA_PATH = join(process.cwd(), '../ladingpage-soildata/src/data/enriched-soil-data.json');
+const CACHE_TTL = 5 * 60 * 1000;
 
 let cachedData: EnrichedSoilData | null = null;
 let lastLoadTime: number = 0;
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
 
 async function loadSoilData(): Promise<EnrichedSoilData> {
   const now = Date.now();
   
-  // Retornar cache se ainda válido
   if (cachedData && (now - lastLoadTime) < CACHE_TTL) {
     return cachedData;
   }
 
-  const dataPath = process.env.SOIL_DATA_PATH || DEFAULT_DATA_PATH;
+  const dataPath = config.data.soilDataPath;
   
   try {
     const data = await readFile(dataPath, 'utf-8');
@@ -40,7 +37,6 @@ export async function getSoilData(query?: SoilDataQuery): Promise<{
   const soilData = await loadSoilData();
   let filteredPoints = soilData.points;
 
-  // Aplicar filtros
   if (query) {
     if (query.state) {
       const stateLower = query.state.toLowerCase();
@@ -70,7 +66,6 @@ export async function getSoilData(query?: SoilDataQuery): Promise<{
     }
   }
 
-  // Aplicar paginação
   const offset = query?.offset || 0;
   const limit = query?.limit;
   const start = offset;
@@ -127,7 +122,6 @@ export async function getSoilDataStats(): Promise<{
   const soilData = await loadSoilData();
   const points = soilData.points;
 
-  // Contagem por estado
   const byState: Record<string, number> = {};
   points.forEach(point => {
     if (point.st) {
@@ -135,7 +129,6 @@ export async function getSoilDataStats(): Promise<{
     }
   });
 
-  // Contagem por bioma
   const byBiome: Record<string, number> = {};
   points.forEach(point => {
     if (point.bi) {
@@ -143,7 +136,6 @@ export async function getSoilDataStats(): Promise<{
     }
   });
 
-  // Contagem por dataset
   const byDataset: Record<string, number> = {};
   points.forEach(point => {
     byDataset[point.dc] = (byDataset[point.dc] || 0) + 1;
@@ -167,4 +159,3 @@ export async function getSoilDataMetadata() {
   const soilData = await loadSoilData();
   return soilData.metadata;
 }
-

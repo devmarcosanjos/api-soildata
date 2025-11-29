@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply, FastifyLoggerInstance } from 'fastify';
 import {
   getTotalDatasets,
   getTotalDownloads,
@@ -15,167 +15,63 @@ import {
   getMonthlyFileDownloads,
   getDataverseTree,
 } from '../services/dataverse.js';
+import { handleError } from '../utils/errorHandler.js';
 import type { MetricsApiParams } from '../types/index.js';
+
+function createMetricsHandler(
+  serviceFn: (params?: MetricsApiParams) => Promise<unknown>,
+  errorMessage: string,
+  logger: FastifyLoggerInstance
+) {
+  return async (request: FastifyRequest<{ Querystring: MetricsApiParams }>, reply: FastifyReply) => {
+    try {
+      const data = await serviceFn(request.query);
+      return { success: true, data };
+    } catch (error) {
+      return handleError(reply, error, errorMessage, logger);
+    }
+  };
+}
 
 export async function metricsRoutes(
   fastify: FastifyInstance,
   _options: FastifyPluginOptions
 ) {
-  // GET /api/metrics/datasets - Total de datasets
   fastify.get<{ Querystring: MetricsApiParams }>(
     '/datasets',
-    async (request: FastifyRequest<{ Querystring: MetricsApiParams }>, reply: FastifyReply) => {
-      try {
-        const data = await getTotalDatasets(request.query);
-        return {
-          success: true,
-          data,
-        };
-      } catch (error) {
-        fastify.log.error(error);
-        reply.code(500);
-        return {
-          success: false,
-          error: 'Erro ao buscar total de datasets',
-          message: error instanceof Error ? error.message : 'Erro desconhecido',
-        };
-      }
-    }
+    createMetricsHandler(getTotalDatasets, 'Erro ao buscar total de datasets', fastify.log)
   );
 
-  // GET /api/metrics/downloads - Total de downloads
   fastify.get<{ Querystring: MetricsApiParams }>(
     '/downloads',
-    async (request: FastifyRequest<{ Querystring: MetricsApiParams }>, reply: FastifyReply) => {
-      try {
-        const data = await getTotalDownloads(request.query);
-        return {
-          success: true,
-          data,
-        };
-      } catch (error) {
-        fastify.log.error(error);
-        reply.code(500);
-        return {
-          success: false,
-          error: 'Erro ao buscar total de downloads',
-          message: error instanceof Error ? error.message : 'Erro desconhecido',
-        };
-      }
-    }
+    createMetricsHandler(getTotalDownloads, 'Erro ao buscar total de downloads', fastify.log)
   );
 
-  // GET /api/metrics/files - Total de arquivos
   fastify.get<{ Querystring: MetricsApiParams }>(
     '/files',
-    async (request: FastifyRequest<{ Querystring: MetricsApiParams }>, reply: FastifyReply) => {
-      try {
-        const data = await getTotalFiles(request.query);
-        return {
-          success: true,
-          data,
-        };
-      } catch (error) {
-        fastify.log.error(error);
-        reply.code(500);
-        return {
-          success: false,
-          error: 'Erro ao buscar total de arquivos',
-          message: error instanceof Error ? error.message : 'Erro desconhecido',
-        };
-      }
-    }
+    createMetricsHandler(getTotalFiles, 'Erro ao buscar total de arquivos', fastify.log)
   );
 
-  // GET /api/metrics/dataverses - Total de dataverses
   fastify.get<{ Querystring: MetricsApiParams }>(
     '/dataverses',
-    async (request: FastifyRequest<{ Querystring: MetricsApiParams }>, reply: FastifyReply) => {
-      try {
-        const data = await getTotalDataverses(request.query);
-        return {
-          success: true,
-          data,
-        };
-      } catch (error) {
-        fastify.log.error(error);
-        reply.code(500);
-        return {
-          success: false,
-          error: 'Erro ao buscar total de dataverses',
-          message: error instanceof Error ? error.message : 'Erro desconhecido',
-        };
-      }
-    }
+    createMetricsHandler(getTotalDataverses, 'Erro ao buscar total de dataverses', fastify.log)
   );
 
-  // GET /api/metrics/monthly/downloads - Downloads mensais
   fastify.get<{ Querystring: MetricsApiParams }>(
     '/monthly/downloads',
-    async (request: FastifyRequest<{ Querystring: MetricsApiParams }>, reply: FastifyReply) => {
-      try {
-        const data = await getMonthlyDownloads(request.query);
-        return {
-          success: true,
-          data,
-        };
-      } catch (error) {
-        fastify.log.error(error);
-        reply.code(500);
-        return {
-          success: false,
-          error: 'Erro ao buscar downloads mensais',
-          message: error instanceof Error ? error.message : 'Erro desconhecido',
-        };
-      }
-    }
+    createMetricsHandler(getMonthlyDownloads, 'Erro ao buscar downloads mensais', fastify.log)
   );
 
-  // GET /api/metrics/monthly/datasets - Datasets mensais
   fastify.get<{ Querystring: MetricsApiParams }>(
     '/monthly/datasets',
-    async (request: FastifyRequest<{ Querystring: MetricsApiParams }>, reply: FastifyReply) => {
-      try {
-        const data = await getMonthlyDatasets(request.query);
-        return {
-          success: true,
-          data,
-        };
-      } catch (error) {
-        fastify.log.error(error);
-        reply.code(500);
-        return {
-          success: false,
-          error: 'Erro ao buscar datasets mensais',
-          message: error instanceof Error ? error.message : 'Erro desconhecido',
-        };
-      }
-    }
+    createMetricsHandler(getMonthlyDatasets, 'Erro ao buscar datasets mensais', fastify.log)
   );
 
-  // GET /api/metrics/monthly/files - Arquivos mensais
   fastify.get<{ Querystring: MetricsApiParams }>(
     '/monthly/files',
-    async (request: FastifyRequest<{ Querystring: MetricsApiParams }>, reply: FastifyReply) => {
-      try {
-        const data = await getMonthlyFiles(request.query);
-        return {
-          success: true,
-          data,
-        };
-      } catch (error) {
-        fastify.log.error(error);
-        reply.code(500);
-        return {
-          success: false,
-          error: 'Erro ao buscar arquivos mensais',
-          message: error instanceof Error ? error.message : 'Erro desconhecido',
-        };
-      }
-    }
+    createMetricsHandler(getMonthlyFiles, 'Erro ao buscar arquivos mensais', fastify.log)
   );
 
-  // GET /api/metrics/downloads/past-days/:days - Downloads dos últimos N dias
   fastify.get<{ Params: { days: string }; Querystring: MetricsApiParams }>(
     '/downloads/past-days/:days',
     async (
@@ -192,23 +88,13 @@ export async function metricsRoutes(
           };
         }
         const data = await getDownloadsPastDays(days, request.query);
-        return {
-          success: true,
-          data,
-        };
+        return { success: true, data };
       } catch (error) {
-        fastify.log.error(error);
-        reply.code(500);
-        return {
-          success: false,
-          error: 'Erro ao buscar downloads dos últimos dias',
-          message: error instanceof Error ? error.message : 'Erro desconhecido',
-        };
+        return handleError(reply, error, 'Erro ao buscar downloads dos últimos dias', fastify.log);
       }
     }
   );
 
-  // GET /api/metrics/datasets/past-days/:days - Datasets dos últimos N dias
   fastify.get<{ Params: { days: string }; Querystring: MetricsApiParams }>(
     '/datasets/past-days/:days',
     async (
@@ -225,130 +111,35 @@ export async function metricsRoutes(
           };
         }
         const data = await getDatasetsPastDays(days, request.query);
-        return {
-          success: true,
-          data,
-        };
+        return { success: true, data };
       } catch (error) {
-        fastify.log.error(error);
-        reply.code(500);
-        return {
-          success: false,
-          error: 'Erro ao buscar datasets dos últimos dias',
-          message: error instanceof Error ? error.message : 'Erro desconhecido',
-        };
+        return handleError(reply, error, 'Erro ao buscar datasets dos últimos dias', fastify.log);
       }
     }
   );
 
-  // GET /api/metrics/datasets/by-subject - Datasets por assunto
   fastify.get<{ Querystring: MetricsApiParams }>(
     '/datasets/by-subject',
-    async (request: FastifyRequest<{ Querystring: MetricsApiParams }>, reply: FastifyReply) => {
-      try {
-        const data = await getDatasetsBySubject(request.query);
-        return {
-          success: true,
-          data,
-        };
-      } catch (error) {
-        fastify.log.error(error);
-        reply.code(500);
-        return {
-          success: false,
-          error: 'Erro ao buscar datasets por assunto',
-          message: error instanceof Error ? error.message : 'Erro desconhecido',
-        };
-      }
-    }
+    createMetricsHandler(getDatasetsBySubject, 'Erro ao buscar datasets por assunto', fastify.log)
   );
 
-  // GET /api/metrics/dataverses/by-category - Dataverses por categoria
   fastify.get<{ Querystring: MetricsApiParams }>(
     '/dataverses/by-category',
-    async (request: FastifyRequest<{ Querystring: MetricsApiParams }>, reply: FastifyReply) => {
-      try {
-        const data = await getDataversesByCategory(request.query);
-        return {
-          success: true,
-          data,
-        };
-      } catch (error) {
-        fastify.log.error(error);
-        reply.code(500);
-        return {
-          success: false,
-          error: 'Erro ao buscar dataverses por categoria',
-          message: error instanceof Error ? error.message : 'Erro desconhecido',
-        };
-      }
-    }
+    createMetricsHandler(getDataversesByCategory, 'Erro ao buscar dataverses por categoria', fastify.log)
   );
 
-  // GET /api/metrics/file-downloads - Downloads por arquivo
   fastify.get<{ Querystring: MetricsApiParams }>(
     '/file-downloads',
-    async (request: FastifyRequest<{ Querystring: MetricsApiParams }>, reply: FastifyReply) => {
-      try {
-        const data = await getFileDownloads(request.query);
-        return {
-          success: true,
-          data,
-        };
-      } catch (error) {
-        fastify.log.error(error);
-        reply.code(500);
-        return {
-          success: false,
-          error: 'Erro ao buscar downloads por arquivo',
-          message: error instanceof Error ? error.message : 'Erro desconhecido',
-        };
-      }
-    }
+    createMetricsHandler(getFileDownloads, 'Erro ao buscar downloads por arquivo', fastify.log)
   );
 
-  // GET /api/metrics/monthly/file-downloads - Downloads mensais por arquivo
   fastify.get<{ Querystring: MetricsApiParams }>(
     '/monthly/file-downloads',
-    async (request: FastifyRequest<{ Querystring: MetricsApiParams }>, reply: FastifyReply) => {
-      try {
-        const data = await getMonthlyFileDownloads(request.query);
-        return {
-          success: true,
-          data,
-        };
-      } catch (error) {
-        fastify.log.error(error);
-        reply.code(500);
-        return {
-          success: false,
-          error: 'Erro ao buscar downloads mensais por arquivo',
-          message: error instanceof Error ? error.message : 'Erro desconhecido',
-        };
-      }
-    }
+    createMetricsHandler(getMonthlyFileDownloads, 'Erro ao buscar downloads mensais por arquivo', fastify.log)
   );
 
-  // GET /api/metrics/tree - Árvore de dataverses
   fastify.get<{ Querystring: MetricsApiParams }>(
     '/tree',
-    async (request: FastifyRequest<{ Querystring: MetricsApiParams }>, reply: FastifyReply) => {
-      try {
-        const data = await getDataverseTree(request.query);
-        return {
-          success: true,
-          data,
-        };
-      } catch (error) {
-        fastify.log.error(error);
-        reply.code(500);
-        return {
-          success: false,
-          error: 'Erro ao buscar árvore de dataverses',
-          message: error instanceof Error ? error.message : 'Erro desconhecido',
-        };
-      }
-    }
+    createMetricsHandler(getDataverseTree, 'Erro ao buscar árvore de dataverses', fastify.log)
   );
 }
-
