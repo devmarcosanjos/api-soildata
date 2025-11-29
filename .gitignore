@@ -8,3 +8,9 @@ dist/
 .vscode/
 .idea/
 
+.cursor
+.env
+.env.local
+.env.local.example
+.env.production
+
