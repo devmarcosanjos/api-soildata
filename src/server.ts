@@ -28,9 +28,21 @@ async function registerPlugins() {
     ? ['https://soildata.cmob.online'] // Default para produção
     : true; // Em desenvolvimento, permite todas as origens
 
+  // Log da configuração de CORS para diagnóstico
+  if (process.env.NODE_ENV === 'production') {
+    fastify.log.info('🔒 CORS configurado para produção');
+    if (Array.isArray(allowedOrigins)) {
+      fastify.log.info(`   Origens permitidas: ${allowedOrigins.join(', ')}`);
+    } else {
+      fastify.log.info('   Todas as origens permitidas (desenvolvimento)');
+    }
+  }
+
   await fastify.register(cors, {
     origin: allowedOrigins,
     credentials: true,
+    methods: ['GET',],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   });
 }
 
