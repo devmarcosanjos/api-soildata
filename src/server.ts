@@ -21,9 +21,15 @@ const fastify: FastifyInstance = Fastify({
 
 // Registrar plugins
 async function registerPlugins() {
-  // CORS
+  // CORS - Configurável via variável de ambiente
+  const allowedOrigins = process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
+    : process.env.NODE_ENV === 'production'
+    ? ['https://soildata.cmob.online'] // Default para produção
+    : true; // Em desenvolvimento, permite todas as origens
+
   await fastify.register(cors, {
-    origin: true, // Em produção, especifique: ['https://soildata.mapbiomas.org']
+    origin: allowedOrigins,
     credentials: true,
   });
 }
