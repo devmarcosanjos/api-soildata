@@ -167,3 +167,39 @@ export interface DataverseSearchResponse {
   };
 }
 
+// Tipos de Dados PSD Platform
+export interface PSDRecord {
+  dataset_id: string;
+  observacao_id: string;
+  longitude_grau: number;
+  latitude_grau: number;
+  ano: number;
+  camada_id: number;
+  profundidade_inicial_cm: number;
+  profundidade_final_cm: number;
+  fracao_grossa_gkg: number;
+  fracao_argila_gkg: number;
+  fracao_silte_gkg: number;
+  fracao_areia_gkg: number;
+}
+
+export interface PSDPlatformData {
+  metadata: {
+    total: number;
+    source: string;
+    generatedAt: string;
+  };
+  data: PSDRecord[];
+  indices: {
+    byDataset: Record<string, number[]>;
+    byYear: Record<number, number[]>;
+  };
+}
+
+export interface PSDQuery {
+  dataset_id?: string;
+  ano?: number;
+  limit?: number;
+  offset?: number;
+}
+

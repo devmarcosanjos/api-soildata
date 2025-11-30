@@ -12,6 +12,15 @@ const getSoilDataPath = (): string => {
   return resolve(process.cwd(), '../ladingpage-soildata/src/data/enriched-soil-data.json');
 };
 
+const getPSDPlatformPath = (): string => {
+  if (process.env.PSD_PLATFORM_DATA_PATH) {
+    return process.env.PSD_PLATFORM_DATA_PATH.startsWith('/')
+      ? process.env.PSD_PLATFORM_DATA_PATH
+      : resolve(process.cwd(), process.env.PSD_PLATFORM_DATA_PATH);
+  }
+  return resolve(process.cwd(), 'src/data/psd-platform-data.json');
+};
+
 export const config = {
   env: {
     isProduction,
@@ -31,6 +40,7 @@ export const config = {
   },
   data: {
     soilDataPath: getSoilDataPath(),
+    psdPlatformPath: getPSDPlatformPath(),
   },
   logger: {
     level: isProduction ? 'info' : 'debug',
