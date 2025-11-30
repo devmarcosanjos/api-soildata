@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 // @ts-ignore - Turf.js has export issues, using any type
@@ -27,10 +27,9 @@ const getStatesGeoJSONPath = (): string => {
   ];
   
   // Tenta encontrar o primeiro arquivo que existe
-  const fs = require('fs');
   for (const possiblePath of possiblePaths) {
     try {
-      if (fs.existsSync(possiblePath)) {
+      if (existsSync(possiblePath)) {
         return possiblePath;
       }
     } catch {
