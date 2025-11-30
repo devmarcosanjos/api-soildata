@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } f
 import { getPSDData, getAllPSDData } from '../services/psd-platform.js';
 import { handleError } from '../utils/errorHandler.js';
 import { getAvailableBiomes } from '../utils/biome-classifier.js';
+import { getAvailableStates } from '../utils/state-classifier.js';
 import type { PSDQuery } from '../types/index.js';
 
 export async function psdPlatformRoutes(
@@ -46,6 +47,7 @@ export async function psdPlatformRoutes(
             dataset_id: request.query.dataset_id || null,
             ano: request.query.ano || null,
             biome: request.query.biome || null,
+            estado: request.query.estado || null,
           },
           data: result.data,
         };
@@ -71,6 +73,7 @@ export async function psdPlatformRoutes(
           filters: {
             dataset_id: request.query.dataset_id || null,
             ano: request.query.ano || null,
+            estado: request.query.estado || null,
           },
           data: result.data,
         };
@@ -101,11 +104,69 @@ export async function psdPlatformRoutes(
           filters: {
             dataset_id: request.query.dataset_id || null,
             ano: request.query.ano || null,
+            estado: request.query.estado || null,
           },
           data: result.data,
         };
       } catch (error) {
         return handleError(reply, error, 'Erro ao buscar dados PSD platform por bioma (paginado)', fastify.log);
+      }
+    }
+  );
+
+  fastify.get<{ Params: { estado: string }; Querystring: Omit<PSDQuery, 'estado' | 'limit' | 'offset'> }>(
+    '/estado/:estado',
+    async (request: FastifyRequest<{ Params: { estado: string }; Querystring: Omit<PSDQuery, 'estado' | 'limit' | 'offset'> }>, reply: FastifyReply) => {
+      try {
+        const estado = decodeURIComponent(request.params.estado);
+        const result = await getAllPSDData({
+          ...request.query,
+          estado,
+        });
+        return {
+          success: true,
+          estado,
+          total: result.total,
+          filters: {
+            dataset_id: request.query.dataset_id || null,
+            ano: request.query.ano || null,
+            biome: request.query.biome || null,
+          },
+          data: result.data,
+        };
+      } catch (error) {
+        return handleError(reply, error, 'Erro ao buscar dados PSD platform por estado', fastify.log);
+      }
+    }
+  );
+
+  fastify.get<{ Params: { estado: string }; Querystring: Omit<PSDQuery, 'estado'> }>(
+    '/estado/:estado/paginated',
+    async (request: FastifyRequest<{ Params: { estado: string }; Querystring: Omit<PSDQuery, 'estado'> }>, reply: FastifyReply) => {
+      try {
+        const estado = decodeURIComponent(request.params.estado);
+        const result = await getPSDData({
+          ...request.query,
+          estado,
+        });
+        return {
+          success: true,
+          estado,
+          total: result.total,
+          returned: result.returned,
+          pagination: {
+            limit: request.query.limit || 100,
+            offset: request.query.offset || 0,
+          },
+          filters: {
+            dataset_id: request.query.dataset_id || null,
+            ano: request.query.ano || null,
+            biome: request.query.biome || null,
+          },
+          data: result.data,
+        };
+      } catch (error) {
+        return handleError(reply, error, 'Erro ao buscar dados PSD platform por estado (paginado)', fastify.log);
       }
     }
   );
@@ -120,6 +181,19 @@ export async function psdPlatformRoutes(
       };
     } catch (error) {
       return handleError(reply, error, 'Erro ao buscar biomas disponíveis', fastify.log);
+    }
+  });
+
+  fastify.get('/estados', async (_request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const estados = getAvailableStates();
+      return {
+        success: true,
+        estados,
+        total: estados.length,
+      };
+    } catch (error) {
+      return handleError(reply, error, 'Erro ao buscar estados disponíveis', fastify.log);
     }
   });
 }

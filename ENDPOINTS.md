@@ -164,7 +164,7 @@ Lista dados de granulometria de solo (PSD Platform) com filtros e paginação
 
 **Notas:**
 - Paginação é obrigatória (máximo 1000 registros por request)
-- Filtros podem ser combinados (dataset_id, ano e biome)
+- Filtros podem ser combinados (dataset_id, ano, biome e estado)
 - Dados são cacheados em memória por 5 minutos
 - Índices pré-calculados melhoram performance de filtros
 - Biomas disponíveis: Amazônia, Cerrado, Mata Atlântica, Caatinga, Pampa, Pantanal
@@ -176,6 +176,7 @@ Retorna todos os dados de granulometria de solo sem paginação
 - `dataset_id` (string, opcional) - Filtrar por ID do dataset
 - `ano` (number, opcional) - Filtrar por ano
 - `biome` (string, opcional) - Filtrar por bioma (ex: "Amazônia", "Cerrado", "Mata Atlântica", "Caatinga", "Pampa", "Pantanal")
+- `estado` (string, opcional) - Filtrar por estado (ex: "São Paulo", "Rio de Janeiro", "Minas Gerais")
 
 **Exemplo de Resposta:**
 ```json
@@ -262,6 +263,7 @@ Retorna dados de um bioma específico com paginação
 - `dataset_id` (string, opcional) - Filtrar por ID do dataset
 - `ano` (number, opcional) - Filtrar por ano
 - `biome` (string, opcional) - Filtrar por bioma (ex: "Amazônia", "Cerrado", "Mata Atlântica", "Caatinga", "Pampa", "Pantanal")
+- `estado` (string, opcional) - Filtrar por estado (ex: "São Paulo", "Rio de Janeiro", "Minas Gerais")
 
 **Exemplo de Requisição:**
 ```
@@ -316,6 +318,149 @@ Retorna lista de biomas disponíveis
 
 **Notas:**
 - Retorna todos os biomas disponíveis no sistema
+- Útil para popular dropdowns ou listas de seleção
+
+### GET /api/psd-platform/estado/:estado
+Retorna todos os dados de um estado específico sem paginação
+
+**Path Parameters:**
+- `estado` (string, obrigatório) - Nome do estado (ex: "São Paulo", "Rio de Janeiro", "Minas Gerais")
+
+**Query Parameters:**
+- `dataset_id` (string, opcional) - Filtrar por ID do dataset
+- `ano` (number, opcional) - Filtrar por ano
+- `biome` (string, opcional) - Filtrar por bioma
+
+**Exemplo de Requisição:**
+```
+GET /api/psd-platform/estado/São%20Paulo
+GET /api/psd-platform/estado/Rio%20Grande%20do%20Sul?ano=2020
+```
+
+**Exemplo de Resposta:**
+```json
+{
+  "success": true,
+  "estado": "São Paulo",
+  "total": 412,
+  "filters": {
+    "dataset_id": null,
+    "ano": null,
+    "biome": null
+  },
+  "data": [
+    {
+      "dataset_id": "ctb0001",
+      "observacao_id": "sm-dnos-001",
+      "longitude_grau": -46.123456,
+      "latitude_grau": -23.456789,
+      "ano": 2010,
+      "camada_id": 1,
+      "profundidade_inicial_cm": 0,
+      "profundidade_final_cm": 20,
+      "fracao_grossa_gkg": 0,
+      "fracao_argila_gkg": 102,
+      "fracao_silte_gkg": 163,
+      "fracao_areia_gkg": 735,
+      "biome": "Mata Atlântica",
+      "estado": "São Paulo"
+    }
+  ]
+}
+```
+
+**Notas:**
+- Retorna todos os registros do estado sem paginação
+- O nome do estado deve corresponder exatamente (case-sensitive)
+- Filtros adicionais (dataset_id, ano, biome) podem ser combinados
+
+### GET /api/psd-platform/estado/:estado/paginated
+Retorna dados de um estado específico com paginação
+
+**Path Parameters:**
+- `estado` (string, obrigatório) - Nome do estado
+
+**Query Parameters:**
+- `limit` (number, opcional, padrão: 100) - Número de registros por página (máximo: 1000)
+- `offset` (number, opcional, padrão: 0) - Número de registros a pular
+- `dataset_id` (string, opcional) - Filtrar por ID do dataset
+- `ano` (number, opcional) - Filtrar por ano
+- `biome` (string, opcional) - Filtrar por bioma
+
+**Exemplo de Requisição:**
+```
+GET /api/psd-platform/estado/Minas%20Gerais/paginated?limit=50&offset=0
+GET /api/psd-platform/estado/Pará/paginated?ano=2020&limit=100
+```
+
+**Exemplo de Resposta:**
+```json
+{
+  "success": true,
+  "estado": "Minas Gerais",
+  "total": 2517,
+  "returned": 50,
+  "pagination": {
+    "limit": 50,
+    "offset": 0
+  },
+  "filters": {
+    "dataset_id": null,
+    "ano": null,
+    "biome": null
+  },
+  "data": [
+    // ... 50 registros
+  ]
+}
+```
+
+**Notas:**
+- Paginação é obrigatória (máximo 1000 registros por request)
+- Útil para exibição em tabelas ou listas paginadas
+- Filtros podem ser combinados
+
+### GET /api/psd-platform/estados
+Retorna lista de estados disponíveis
+
+**Exemplo de Resposta:**
+```json
+{
+  "success": true,
+  "estados": [
+    "Acre",
+    "Alagoas",
+    "Amapá",
+    "Amazonas",
+    "Bahia",
+    "Ceará",
+    "Distrito Federal",
+    "Espírito Santo",
+    "Goiás",
+    "Maranhão",
+    "Mato Grosso",
+    "Mato Grosso do Sul",
+    "Minas Gerais",
+    "Pará",
+    "Paraíba",
+    "Paraná",
+    "Pernambuco",
+    "Piauí",
+    "Rio de Janeiro",
+    "Rio Grande do Norte",
+    "Rio Grande do Sul",
+    "Roraima",
+    "Santa Catarina",
+    "São Paulo",
+    "Sergipe",
+    "Tocantins"
+  ],
+  "total": 26
+}
+```
+
+**Notas:**
+- Retorna todos os estados disponíveis no sistema
 - Útil para popular dropdowns ou listas de seleção
 
 ## Estatísticas

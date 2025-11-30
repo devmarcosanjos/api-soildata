@@ -73,6 +73,20 @@ export async function getPSDData(query?: PSDQuery): Promise<{
     }
   }
 
+  if (query?.estado) {
+    const estadoLower = query.estado.toLowerCase();
+    const indices = psdData.indices.byEstado?.[query.estado];
+    if (indices && indices.length > 0) {
+      if (query.dataset_id || query.ano !== undefined || query.biome) {
+        filteredRecords = filteredRecords.filter(r => r.estado?.toLowerCase() === estadoLower);
+      } else {
+        filteredRecords = indices.map(i => psdData.data[i]);
+      }
+    } else {
+      filteredRecords = [];
+    }
+  }
+
   const limit = Math.min(query?.limit || 100, 1000);
   const offset = query?.offset || 0;
   const start = offset;
@@ -121,6 +135,20 @@ export async function getAllPSDData(query?: Omit<PSDQuery, 'limit' | 'offset'>):
     if (indices && indices.length > 0) {
       if (query.dataset_id || query.ano !== undefined) {
         filteredRecords = filteredRecords.filter(r => r.biome?.toLowerCase() === biomeLower);
+      } else {
+        filteredRecords = indices.map(i => psdData.data[i]);
+      }
+    } else {
+      filteredRecords = [];
+    }
+  }
+
+  if (query?.estado) {
+    const estadoLower = query.estado.toLowerCase();
+    const indices = psdData.indices.byEstado?.[query.estado];
+    if (indices && indices.length > 0) {
+      if (query.dataset_id || query.ano !== undefined || query.biome) {
+        filteredRecords = filteredRecords.filter(r => r.estado?.toLowerCase() === estadoLower);
       } else {
         filteredRecords = indices.map(i => psdData.data[i]);
       }

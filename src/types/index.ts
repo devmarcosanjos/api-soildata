@@ -182,6 +182,7 @@ export interface PSDRecord {
   fracao_silte_gkg: number;
   fracao_areia_gkg: number;
   biome: string | null;
+  estado: string | null;
 }
 
 export interface PSDPlatformData {
@@ -195,6 +196,7 @@ export interface PSDPlatformData {
     byDataset: Record<string, number[]>;
     byYear: Record<number, number[]>;
     byBiome: Record<string, number[]>;
+    byEstado: Record<string, number[]>;
   };
 }
 
@@ -202,6 +204,7 @@ export interface PSDQuery {
   dataset_id?: string;
   ano?: number;
   biome?: string;
+  estado?: string;
   limit?: number;
   offset?: number;
 }
