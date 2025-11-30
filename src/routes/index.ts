@@ -10,14 +10,14 @@ export async function routes(
   _options: FastifyPluginOptions
 ) {
   fastify.get('/health', async () => ({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
   }));
 
   fastify.get('/', async () => ({
-    name: 'SoilData API',
-    version: '1.0.0',
+      name: 'SoilData API',
+      version: '1.0.0',
       endpoints: {
         health: '/health',
         datasets: '/api/datasets',
@@ -25,13 +25,13 @@ export async function routes(
         soilData: '/api/soil-data',
         statistics: '/api/statistics',
         psdPlatform: '/api/psd-platform',
-      },
+        },
   }));
 
-        await fastify.register(datasetsRoutes, { prefix: '/api/datasets' });
-        await fastify.register(metricsRoutes, { prefix: '/api/metrics' });
-        await fastify.register(soilDataRoutes, { prefix: '/api/soil-data' });
-        await fastify.register(statisticsRoutes, { prefix: '/api/statistics' });
+  await fastify.register(datasetsRoutes, { prefix: '/api/datasets' });
+  await fastify.register(metricsRoutes, { prefix: '/api/metrics' });
+  await fastify.register(soilDataRoutes, { prefix: '/api/soil-data' });
+  await fastify.register(statisticsRoutes, { prefix: '/api/statistics' });
         await fastify.register(psdPlatformRoutes, { prefix: '/api/psd-platform' });
 }
 

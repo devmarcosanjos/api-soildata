@@ -7,15 +7,15 @@ const fastify: FastifyInstance = Fastify({
   logger: {
     level: config.logger.level,
     transport: config.logger.pretty
-      ? {
-          target: 'pino-pretty',
-          options: {
-            translateTime: 'HH:MM:ss Z',
-            ignore: 'pid,hostname',
-            colorize: true,
-          },
-        }
-      : undefined,
+        ? {
+            target: 'pino-pretty',
+            options: {
+              translateTime: 'HH:MM:ss Z',
+              ignore: 'pid,hostname',
+              colorize: true,
+            },
+          }
+        : undefined,
   },
 });
 
