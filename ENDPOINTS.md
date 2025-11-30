@@ -168,6 +168,34 @@ Lista dados de granulometria de solo (PSD Platform) com filtros e paginação
 - Dados são cacheados em memória por 5 minutos
 - Índices pré-calculados melhoram performance de filtros
 
+### GET /api/psd-platform/all
+Retorna todos os dados de granulometria de solo sem paginação
+
+**Query Parameters:**
+- `dataset_id` (string, opcional) - Filtrar por ID do dataset
+- `ano` (number, opcional) - Filtrar por ano
+
+**Exemplo de Resposta:**
+```json
+{
+  "success": true,
+  "total": 41924,
+  "filters": {
+    "dataset_id": null,
+    "ano": null
+  },
+  "data": [
+    // ... todos os 41.924 registros
+  ]
+}
+```
+
+**Notas:**
+- Retorna todos os registros sem paginação
+- Use com cuidado - resposta pode ser grande (~17MB)
+- Filtros podem ser aplicados para reduzir o tamanho da resposta
+- Útil para downloads completos ou processamento em lote
+
 ## Estatísticas
 
 ### GET /api/statistics

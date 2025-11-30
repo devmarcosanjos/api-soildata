@@ -72,3 +72,38 @@ export async function getPSDData(query?: PSDQuery): Promise<{
   };
 }
 
+export async function getAllPSDData(query?: Omit<PSDQuery, 'limit' | 'offset'>): Promise<{
+  total: number;
+  data: PSDRecord[];
+}> {
+  const psdData = await loadPSDData();
+  let filteredRecords = psdData.data;
+
+  if (query?.dataset_id) {
+    const indices = psdData.indices.byDataset[query.dataset_id];
+    if (indices && indices.length > 0) {
+      filteredRecords = indices.map(i => psdData.data[i]);
+    } else {
+      filteredRecords = [];
+    }
+  }
+
+  if (query?.ano !== undefined) {
+    if (query.dataset_id) {
+      filteredRecords = filteredRecords.filter(r => r.ano === query.ano);
+    } else {
+      const indices = psdData.indices.byYear[query.ano];
+      if (indices && indices.length > 0) {
+        filteredRecords = indices.map(i => psdData.data[i]);
+      } else {
+        filteredRecords = [];
+      }
+    }
+  }
+
+  return {
+    total: filteredRecords.length,
+    data: filteredRecords,
+  };
+}
+
