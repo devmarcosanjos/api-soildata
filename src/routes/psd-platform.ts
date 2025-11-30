@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } from 'fastify';
 import { getPSDData, getAllPSDData } from '../services/psd-platform.js';
 import { handleError } from '../utils/errorHandler.js';
+import { getAvailableBiomes } from '../utils/biome-classifier.js';
 import type { PSDQuery } from '../types/index.js';
 
 export async function psdPlatformRoutes(
@@ -23,6 +24,7 @@ export async function psdPlatformRoutes(
           filters: {
             dataset_id: request.query.dataset_id || null,
             ano: request.query.ano || null,
+            biome: request.query.biome || null,
           },
           data: result.data,
         };
@@ -43,6 +45,7 @@ export async function psdPlatformRoutes(
           filters: {
             dataset_id: request.query.dataset_id || null,
             ano: request.query.ano || null,
+            biome: request.query.biome || null,
           },
           data: result.data,
         };
@@ -51,5 +54,73 @@ export async function psdPlatformRoutes(
       }
     }
   );
+
+  fastify.get<{ Params: { biome: string }; Querystring: Omit<PSDQuery, 'biome' | 'limit' | 'offset'> }>(
+    '/biome/:biome',
+    async (request: FastifyRequest<{ Params: { biome: string }; Querystring: Omit<PSDQuery, 'biome' | 'limit' | 'offset'> }>, reply: FastifyReply) => {
+      try {
+        const biome = decodeURIComponent(request.params.biome);
+        const result = await getAllPSDData({
+          ...request.query,
+          biome,
+        });
+        return {
+          success: true,
+          biome,
+          total: result.total,
+          filters: {
+            dataset_id: request.query.dataset_id || null,
+            ano: request.query.ano || null,
+          },
+          data: result.data,
+        };
+      } catch (error) {
+        return handleError(reply, error, 'Erro ao buscar dados PSD platform por bioma', fastify.log);
+      }
+    }
+  );
+
+  fastify.get<{ Params: { biome: string }; Querystring: Omit<PSDQuery, 'biome'> }>(
+    '/biome/:biome/paginated',
+    async (request: FastifyRequest<{ Params: { biome: string }; Querystring: Omit<PSDQuery, 'biome'> }>, reply: FastifyReply) => {
+      try {
+        const biome = decodeURIComponent(request.params.biome);
+        const result = await getPSDData({
+          ...request.query,
+          biome,
+        });
+        return {
+          success: true,
+          biome,
+          total: result.total,
+          returned: result.returned,
+          pagination: {
+            limit: request.query.limit || 100,
+            offset: request.query.offset || 0,
+          },
+          filters: {
+            dataset_id: request.query.dataset_id || null,
+            ano: request.query.ano || null,
+          },
+          data: result.data,
+        };
+      } catch (error) {
+        return handleError(reply, error, 'Erro ao buscar dados PSD platform por bioma (paginado)', fastify.log);
+      }
+    }
+  );
+
+  fastify.get('/biomes', async (_request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const biomes = getAvailableBiomes();
+      return {
+        success: true,
+        biomes,
+        total: biomes.length,
+      };
+    } catch (error) {
+      return handleError(reply, error, 'Erro ao buscar biomas disponíveis', fastify.log);
+    }
+  });
 }
 

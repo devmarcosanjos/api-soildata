@@ -59,6 +59,20 @@ export async function getPSDData(query?: PSDQuery): Promise<{
     }
   }
 
+  if (query?.biome) {
+    const biomeLower = query.biome.toLowerCase();
+    const indices = psdData.indices.byBiome[query.biome];
+    if (indices && indices.length > 0) {
+      if (query.dataset_id || query.ano !== undefined) {
+        filteredRecords = filteredRecords.filter(r => r.biome?.toLowerCase() === biomeLower);
+      } else {
+        filteredRecords = indices.map(i => psdData.data[i]);
+      }
+    } else {
+      filteredRecords = [];
+    }
+  }
+
   const limit = Math.min(query?.limit || 100, 1000);
   const offset = query?.offset || 0;
   const start = offset;
@@ -98,6 +112,20 @@ export async function getAllPSDData(query?: Omit<PSDQuery, 'limit' | 'offset'>):
       } else {
         filteredRecords = [];
       }
+    }
+  }
+
+  if (query?.biome) {
+    const biomeLower = query.biome.toLowerCase();
+    const indices = psdData.indices.byBiome[query.biome];
+    if (indices && indices.length > 0) {
+      if (query.dataset_id || query.ano !== undefined) {
+        filteredRecords = filteredRecords.filter(r => r.biome?.toLowerCase() === biomeLower);
+      } else {
+        filteredRecords = indices.map(i => psdData.data[i]);
+      }
+    } else {
+      filteredRecords = [];
     }
   }
 
