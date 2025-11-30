@@ -176,7 +176,7 @@ Retorna todos os dados de granulometria de solo sem paginação
 - `dataset_id` (string, opcional) - Filtrar por ID do dataset
 - `ano` (number, opcional) - Filtrar por ano
 - `biome` (string, opcional) - Filtrar por bioma (ex: "Amazônia", "Cerrado", "Mata Atlântica", "Caatinga", "Pampa", "Pantanal")
-- `estado` (string, opcional) - Filtrar por estado (ex: "São Paulo", "Rio de Janeiro", "Minas Gerais")
+- `estado` (string, opcional) - Filtrar por estado (nome completo ou sigla: "São Paulo", "SP", "PR", "RS")
 
 **Exemplo de Resposta:**
 ```json
@@ -263,7 +263,7 @@ Retorna dados de um bioma específico com paginação
 - `dataset_id` (string, opcional) - Filtrar por ID do dataset
 - `ano` (number, opcional) - Filtrar por ano
 - `biome` (string, opcional) - Filtrar por bioma (ex: "Amazônia", "Cerrado", "Mata Atlântica", "Caatinga", "Pampa", "Pantanal")
-- `estado` (string, opcional) - Filtrar por estado (ex: "São Paulo", "Rio de Janeiro", "Minas Gerais")
+- `estado` (string, opcional) - Filtrar por estado (nome completo ou sigla: "São Paulo", "SP", "PR", "RS")
 
 **Exemplo de Requisição:**
 ```
@@ -324,7 +324,7 @@ Retorna lista de biomas disponíveis
 Retorna todos os dados de um estado específico sem paginação
 
 **Path Parameters:**
-- `estado` (string, obrigatório) - Nome do estado (ex: "São Paulo", "Rio de Janeiro", "Minas Gerais")
+- `estado` (string, obrigatório) - Nome do estado (ex: "São Paulo", "Rio de Janeiro", "Minas Gerais") ou sigla (ex: "SP", "RJ", "MG", "PR", "RS")
 
 **Query Parameters:**
 - `dataset_id` (string, opcional) - Filtrar por ID do dataset
@@ -334,7 +334,9 @@ Retorna todos os dados de um estado específico sem paginação
 **Exemplo de Requisição:**
 ```
 GET /api/psd-platform/estado/São%20Paulo
-GET /api/psd-platform/estado/Rio%20Grande%20do%20Sul?ano=2020
+GET /api/psd-platform/estado/SP
+GET /api/psd-platform/estado/PR?ano=2020
+GET /api/psd-platform/estado/RS
 ```
 
 **Exemplo de Resposta:**
@@ -371,14 +373,15 @@ GET /api/psd-platform/estado/Rio%20Grande%20do%20Sul?ano=2020
 
 **Notas:**
 - Retorna todos os registros do estado sem paginação
-- O nome do estado deve corresponder exatamente (case-sensitive)
+- Aceita tanto nome completo do estado quanto sigla (PR, RS, SP, etc.)
+- A sigla é case-insensitive (PR, pr, Pr funcionam)
 - Filtros adicionais (dataset_id, ano, biome) podem ser combinados
 
 ### GET /api/psd-platform/estado/:estado/paginated
 Retorna dados de um estado específico com paginação
 
 **Path Parameters:**
-- `estado` (string, obrigatório) - Nome do estado
+- `estado` (string, obrigatório) - Nome do estado ou sigla (ex: "SP", "PR", "RS")
 
 **Query Parameters:**
 - `limit` (number, opcional, padrão: 100) - Número de registros por página (máximo: 1000)
@@ -389,8 +392,9 @@ Retorna dados de um estado específico com paginação
 
 **Exemplo de Requisição:**
 ```
-GET /api/psd-platform/estado/Minas%20Gerais/paginated?limit=50&offset=0
+GET /api/psd-platform/estado/MG/paginated?limit=50&offset=0
 GET /api/psd-platform/estado/Pará/paginated?ano=2020&limit=100
+GET /api/psd-platform/estado/SP/paginated?limit=100
 ```
 
 **Exemplo de Resposta:**

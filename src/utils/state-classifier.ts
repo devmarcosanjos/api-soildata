@@ -62,6 +62,22 @@ export function getStateFromCoordinates(lon: number, lat: number): string | null
   return null;
 }
 
+export function getStateNameFromSigla(sigla: string): string | null {
+  const states = loadStatesData();
+  const siglaUpper = sigla.toUpperCase();
+  
+  if (states?.features) {
+    for (const feature of states.features) {
+      const featureSigla = feature.properties?.SIGLA || feature.properties?.sigla;
+      if (featureSigla?.toUpperCase() === siglaUpper) {
+        return feature.properties?.Estado || feature.properties?.NOME || feature.properties?.name || feature.properties?.Name || null;
+      }
+    }
+  }
+  
+  return null;
+}
+
 export function getAvailableStates(): string[] {
   const states = loadStatesData();
   const stateNames = new Set<string>();
@@ -76,5 +92,21 @@ export function getAvailableStates(): string[] {
   }
   
   return Array.from(stateNames).sort();
+}
+
+export function getStateSiglaFromName(stateName: string): string | null {
+  const states = loadStatesData();
+  const stateNameLower = stateName.toLowerCase();
+  
+  if (states?.features) {
+    for (const feature of states.features) {
+      const featureStateName = feature.properties?.Estado || feature.properties?.NOME || feature.properties?.name || feature.properties?.Name;
+      if (featureStateName?.toLowerCase() === stateNameLower) {
+        return feature.properties?.SIGLA || feature.properties?.sigla || null;
+      }
+    }
+  }
+  
+  return null;
 }
 
