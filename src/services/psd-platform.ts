@@ -100,6 +100,33 @@ export async function getPSDData(query?: PSDQuery): Promise<{
     }
   }
 
+  if (query?.municipio) {
+    const municipioLower = query.municipio.toLowerCase();
+    // Tenta encontrar o município no índice (case-insensitive)
+    let municipioKey: string | undefined;
+    if (psdData.indices.byMunicipio) {
+      municipioKey = Object.keys(psdData.indices.byMunicipio).find(
+        key => key.toLowerCase() === municipioLower
+      );
+    }
+    
+    if (municipioKey) {
+      const indices = psdData.indices.byMunicipio[municipioKey];
+      if (indices && indices.length > 0) {
+        if (query.dataset_id || query.ano !== undefined || query.biome || query.estado) {
+          filteredRecords = filteredRecords.filter(r => r.municipio?.toLowerCase() === municipioLower);
+        } else {
+          filteredRecords = indices.map(i => psdData.data[i]);
+        }
+      } else {
+        filteredRecords = [];
+      }
+    } else {
+      // Se não encontrou no índice, filtra diretamente nos dados
+      filteredRecords = filteredRecords.filter(r => r.municipio?.toLowerCase() === municipioLower);
+    }
+  }
+
   const limit = Math.min(query?.limit || 100, 1000);
   const offset = query?.offset || 0;
   const start = offset;
@@ -180,6 +207,33 @@ export async function getAllPSDData(query?: Omit<PSDQuery, 'limit' | 'offset'>):
     } else {
       // Se não encontrou no índice, filtra diretamente nos dados
       filteredRecords = filteredRecords.filter(r => r.estado?.toLowerCase() === estadoLower);
+    }
+  }
+
+  if (query?.municipio) {
+    const municipioLower = query.municipio.toLowerCase();
+    // Tenta encontrar o município no índice (case-insensitive)
+    let municipioKey: string | undefined;
+    if (psdData.indices.byMunicipio) {
+      municipioKey = Object.keys(psdData.indices.byMunicipio).find(
+        key => key.toLowerCase() === municipioLower
+      );
+    }
+    
+    if (municipioKey) {
+      const indices = psdData.indices.byMunicipio[municipioKey];
+      if (indices && indices.length > 0) {
+        if (query.dataset_id || query.ano !== undefined || query.biome || query.estado) {
+          filteredRecords = filteredRecords.filter(r => r.municipio?.toLowerCase() === municipioLower);
+        } else {
+          filteredRecords = indices.map(i => psdData.data[i]);
+        }
+      } else {
+        filteredRecords = [];
+      }
+    } else {
+      // Se não encontrou no índice, filtra diretamente nos dados
+      filteredRecords = filteredRecords.filter(r => r.municipio?.toLowerCase() === municipioLower);
     }
   }
 

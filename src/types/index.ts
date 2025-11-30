@@ -183,6 +183,7 @@ export interface PSDRecord {
   fracao_areia_gkg: number;
   biome: string | null;
   estado: string | null;
+  municipio: string | null;
 }
 
 export interface PSDPlatformData {
@@ -197,6 +198,7 @@ export interface PSDPlatformData {
     byYear: Record<number, number[]>;
     byBiome: Record<string, number[]>;
     byEstado: Record<string, number[]>;
+    byMunicipio: Record<string, number[]>;
   };
 }
 
@@ -205,6 +207,7 @@ export interface PSDQuery {
   ano?: number;
   biome?: string;
   estado?: string;
+  municipio?: string;
   limit?: number;
   offset?: number;
 }

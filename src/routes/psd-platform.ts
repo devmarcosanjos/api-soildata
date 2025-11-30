@@ -3,6 +3,7 @@ import { getPSDData, getAllPSDData } from '../services/psd-platform.js';
 import { handleError } from '../utils/errorHandler.js';
 import { getAvailableBiomes } from '../utils/biome-classifier.js';
 import { getAvailableStates, getStateNameFromSigla } from '../utils/state-classifier.js';
+import { getAvailableMunicipalities } from '../utils/municipality-classifier.js';
 import type { PSDQuery } from '../types/index.js';
 
 export async function psdPlatformRoutes(
@@ -37,6 +38,7 @@ export async function psdPlatformRoutes(
             ano: request.query.ano || null,
             biome: request.query.biome || null,
             estado: request.query.estado || null,
+            municipio: request.query.municipio || null,
           },
           data: result.data,
         };
@@ -69,6 +71,7 @@ export async function psdPlatformRoutes(
             ano: request.query.ano || null,
             biome: request.query.biome || null,
             estado: request.query.estado || null,
+            municipio: request.query.municipio || null,
           },
           data: result.data,
         };
@@ -305,6 +308,118 @@ export async function psdPlatformRoutes(
       };
     } catch (error) {
       return handleError(reply, error, 'Erro ao buscar estados disponíveis', fastify.log);
+    }
+  });
+
+  fastify.get<{ Params: { municipio: string }; Querystring: Omit<PSDQuery, 'municipio' | 'limit' | 'offset'> }>(
+    '/municipio/:municipio',
+    async (request: FastifyRequest<{ Params: { municipio: string }; Querystring: Omit<PSDQuery, 'municipio' | 'limit' | 'offset'> }>, reply: FastifyReply) => {
+      try {
+        const municipioParam = decodeURIComponent(request.params.municipio);
+        
+        let query = { ...request.query };
+        
+        // Se estado for uma sigla (2 caracteres ou menos), converte para nome
+        if (query.estado && query.estado.length <= 2) {
+          const stateName = getStateNameFromSigla(query.estado);
+          if (stateName) {
+            query.estado = stateName;
+          }
+        }
+        
+        const result = await getAllPSDData({
+          ...query,
+          municipio: municipioParam,
+        });
+        
+        if (result.total === 0) {
+          return reply.status(404).send({
+            success: false,
+            error: 'Município não encontrado',
+            message: `Nenhum registro encontrado para o município "${municipioParam}"`,
+          });
+        }
+        
+        return {
+          success: true,
+          municipio: municipioParam,
+          total: result.total,
+          filters: {
+            dataset_id: request.query.dataset_id || null,
+            ano: request.query.ano || null,
+            biome: request.query.biome || null,
+            estado: query.estado || null,
+          },
+          data: result.data,
+        };
+      } catch (error) {
+        return handleError(reply, error, 'Erro ao buscar dados PSD platform por município', fastify.log);
+      }
+    }
+  );
+
+  fastify.get<{ Params: { municipio: string }; Querystring: Omit<PSDQuery, 'municipio'> }>(
+    '/municipio/:municipio/paginated',
+    async (request: FastifyRequest<{ Params: { municipio: string }; Querystring: Omit<PSDQuery, 'municipio'> }>, reply: FastifyReply) => {
+      try {
+        const municipioParam = decodeURIComponent(request.params.municipio);
+        
+        let query = { ...request.query };
+        
+        // Se estado for uma sigla (2 caracteres ou menos), converte para nome
+        if (query.estado && query.estado.length <= 2) {
+          const stateName = getStateNameFromSigla(query.estado);
+          if (stateName) {
+            query.estado = stateName;
+          }
+        }
+        
+        const result = await getPSDData({
+          ...query,
+          municipio: municipioParam,
+        });
+        
+        if (result.total === 0) {
+          return reply.status(404).send({
+            success: false,
+            error: 'Município não encontrado',
+            message: `Nenhum registro encontrado para o município "${municipioParam}"`,
+          });
+        }
+        
+        return {
+          success: true,
+          municipio: municipioParam,
+          total: result.total,
+          returned: result.returned,
+          pagination: {
+            limit: request.query.limit || 100,
+            offset: request.query.offset || 0,
+          },
+          filters: {
+            dataset_id: request.query.dataset_id || null,
+            ano: request.query.ano || null,
+            biome: request.query.biome || null,
+            estado: query.estado || null,
+          },
+          data: result.data,
+        };
+      } catch (error) {
+        return handleError(reply, error, 'Erro ao buscar dados PSD platform por município (paginado)', fastify.log);
+      }
+    }
+  );
+
+  fastify.get('/municipios', async (_request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const municipios = getAvailableMunicipalities();
+      return {
+        success: true,
+        municipios,
+        total: municipios.length,
+      };
+    } catch (error) {
+      return handleError(reply, error, 'Erro ao buscar municípios disponíveis', fastify.log);
     }
   });
 }

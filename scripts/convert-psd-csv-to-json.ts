@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync } from 'fs';
 import { resolve, join } from 'path';
 import { getBiomeFromCoordinates } from '../src/utils/biome-classifier.js';
 import { getStateFromCoordinates } from '../src/utils/state-classifier.js';
+import { getMunicipalityFromCoordinates } from '../src/utils/municipality-classifier.js';
 import type { PSDRecord, PSDPlatformData } from '../src/types/index.js';
 
 const csvPath = resolve(process.cwd(), 'src/data/c3_2025_11_28_soildata_psd_platform.csv');
@@ -36,13 +37,14 @@ const rawRecords = parse(csvData, {
     
     return value;
   },
-}) as Array<Omit<PSDRecord, 'biome' | 'estado'>>;
+}) as Array<Omit<PSDRecord, 'biome' | 'estado' | 'municipio'>>;
 
-console.log('🌍 Enriquecendo dados com informação de bioma e estado...');
+console.log('🌍 Enriquecendo dados com informação de bioma, estado e município...');
 
 const records: PSDRecord[] = rawRecords.map((record, index) => {
   const biome = getBiomeFromCoordinates(record.longitude_grau, record.latitude_grau);
   const estado = getStateFromCoordinates(record.longitude_grau, record.latitude_grau);
+  const municipio = getMunicipalityFromCoordinates(record.longitude_grau, record.latitude_grau);
   
   if ((index + 1) % 5000 === 0 || index === rawRecords.length - 1) {
     console.log(`   Progresso: ${index + 1}/${rawRecords.length}`);
@@ -52,6 +54,7 @@ const records: PSDRecord[] = rawRecords.map((record, index) => {
     ...record,
     biome: biome || null,
     estado: estado || null,
+    municipio: municipio || null,
   };
 });
 
@@ -62,6 +65,7 @@ const indices = {
   byYear: new Map<number, number[]>(),
   byBiome: new Map<string, number[]>(),
   byEstado: new Map<string, number[]>(),
+  byMunicipio: new Map<string, number[]>(),
 };
 
 records.forEach((record, index) => {
@@ -92,6 +96,13 @@ records.forEach((record, index) => {
     }
     indices.byEstado.get(record.estado)!.push(index);
   }
+
+  if (record.municipio) {
+    if (!indices.byMunicipio.has(record.municipio)) {
+      indices.byMunicipio.set(record.municipio, []);
+    }
+    indices.byMunicipio.get(record.municipio)!.push(index);
+  }
 });
 
 console.log(`📊 Índices criados:`);
@@ -99,6 +110,7 @@ console.log(`   - Por dataset: ${indices.byDataset.size} datasets únicos`);
 console.log(`   - Por ano: ${indices.byYear.size} anos únicos`);
 console.log(`   - Por bioma: ${indices.byBiome.size} biomas únicos`);
 console.log(`   - Por estado: ${indices.byEstado.size} estados únicos`);
+console.log(`   - Por município: ${indices.byMunicipio.size} municípios únicos`);
 
 const biomeCounts = new Map<string, number>();
 records.forEach(r => {
@@ -126,6 +138,20 @@ Array.from(estadoCounts.entries())
     console.log(`     - ${estado}: ${count} registros`);
   });
 
+const municipioCounts = new Map<string, number>();
+records.forEach(r => {
+  if (r.municipio) {
+    municipioCounts.set(r.municipio, (municipioCounts.get(r.municipio) || 0) + 1);
+  }
+});
+console.log(`   Distribuição por município (top 10):`);
+Array.from(municipioCounts.entries())
+  .sort((a, b) => b[1] - a[1])
+  .slice(0, 10)
+  .forEach(([municipio, count]) => {
+    console.log(`     - ${municipio}: ${count} registros`);
+  });
+
 const output: PSDPlatformData = {
   metadata: {
     total: records.length,
@@ -138,6 +164,7 @@ const output: PSDPlatformData = {
     byYear: Object.fromEntries(indices.byYear),
     byBiome: Object.fromEntries(indices.byBiome),
     byEstado: Object.fromEntries(indices.byEstado),
+    byMunicipio: Object.fromEntries(indices.byMunicipio),
   },
 };
 
