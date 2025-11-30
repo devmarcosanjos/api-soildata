@@ -141,12 +141,31 @@ export async function psdPlatformRoutes(
       try {
         const estadoParam = decodeURIComponent(request.params.estado);
         
+        // Mapa de siglas para nomes (fallback caso GeoJSON não esteja disponível)
+        const siglaToName: Record<string, string> = {
+          'AC': 'Acre', 'AL': 'Alagoas', 'AP': 'Amapá', 'AM': 'Amazonas',
+          'BA': 'Bahia', 'CE': 'Ceará', 'DF': 'Distrito Federal', 'ES': 'Espírito Santo',
+          'GO': 'Goiás', 'MA': 'Maranhão', 'MT': 'Mato Grosso', 'MS': 'Mato Grosso do Sul',
+          'MG': 'Minas Gerais', 'PA': 'Pará', 'PB': 'Paraíba', 'PR': 'Paraná',
+          'PE': 'Pernambuco', 'PI': 'Piauí', 'RJ': 'Rio de Janeiro', 'RN': 'Rio Grande do Norte',
+          'RS': 'Rio Grande do Sul', 'RO': 'Rondônia', 'RR': 'Roraima', 'SC': 'Santa Catarina',
+          'SP': 'São Paulo', 'SE': 'Sergipe', 'TO': 'Tocantins'
+        };
+        
         // Tenta converter sigla para nome do estado (ex: PR -> Paraná)
         let estado = estadoParam;
+        let sigla: string | null = null;
+        
         if (estadoParam.length <= 2) {
+          sigla = estadoParam.toUpperCase();
+          // Primeiro tenta usar o GeoJSON
           const stateName = getStateNameFromSigla(estadoParam);
           if (stateName) {
             estado = stateName;
+          } else if (siglaToName[sigla]) {
+            // Fallback para o mapa hardcoded
+            estado = siglaToName[sigla];
+            fastify.log.warn(`[PSD Platform] GeoJSON não disponível, usando mapa hardcoded para "${sigla}" -> "${estado}"`);
           } else {
             return reply.status(404).send({
               success: false,
@@ -160,10 +179,19 @@ export async function psdPlatformRoutes(
           ...request.query,
           estado,
         });
+        
+        if (result.total === 0) {
+          return reply.status(404).send({
+            success: false,
+            error: 'Estado não encontrado',
+            message: `Nenhum registro encontrado para o estado "${estado}"`,
+          });
+        }
+        
         return {
           success: true,
           estado,
-          sigla: estadoParam.length <= 2 ? estadoParam.toUpperCase() : null,
+          sigla: sigla,
           total: result.total,
           filters: {
             dataset_id: request.query.dataset_id || null,
@@ -184,12 +212,31 @@ export async function psdPlatformRoutes(
       try {
         const estadoParam = decodeURIComponent(request.params.estado);
         
+        // Mapa de siglas para nomes (fallback caso GeoJSON não esteja disponível)
+        const siglaToName: Record<string, string> = {
+          'AC': 'Acre', 'AL': 'Alagoas', 'AP': 'Amapá', 'AM': 'Amazonas',
+          'BA': 'Bahia', 'CE': 'Ceará', 'DF': 'Distrito Federal', 'ES': 'Espírito Santo',
+          'GO': 'Goiás', 'MA': 'Maranhão', 'MT': 'Mato Grosso', 'MS': 'Mato Grosso do Sul',
+          'MG': 'Minas Gerais', 'PA': 'Pará', 'PB': 'Paraíba', 'PR': 'Paraná',
+          'PE': 'Pernambuco', 'PI': 'Piauí', 'RJ': 'Rio de Janeiro', 'RN': 'Rio Grande do Norte',
+          'RS': 'Rio Grande do Sul', 'RO': 'Rondônia', 'RR': 'Roraima', 'SC': 'Santa Catarina',
+          'SP': 'São Paulo', 'SE': 'Sergipe', 'TO': 'Tocantins'
+        };
+        
         // Tenta converter sigla para nome do estado (ex: PR -> Paraná)
         let estado = estadoParam;
+        let sigla: string | null = null;
+        
         if (estadoParam.length <= 2) {
+          sigla = estadoParam.toUpperCase();
+          // Primeiro tenta usar o GeoJSON
           const stateName = getStateNameFromSigla(estadoParam);
           if (stateName) {
             estado = stateName;
+          } else if (siglaToName[sigla]) {
+            // Fallback para o mapa hardcoded
+            estado = siglaToName[sigla];
+            fastify.log.warn(`[PSD Platform] GeoJSON não disponível, usando mapa hardcoded para "${sigla}" -> "${estado}"`);
           } else {
             return reply.status(404).send({
               success: false,
@@ -203,10 +250,19 @@ export async function psdPlatformRoutes(
           ...request.query,
           estado,
         });
+        
+        if (result.total === 0) {
+          return reply.status(404).send({
+            success: false,
+            error: 'Estado não encontrado',
+            message: `Nenhum registro encontrado para o estado "${estado}"`,
+          });
+        }
+        
         return {
           success: true,
           estado,
-          sigla: estadoParam.length <= 2 ? estadoParam.toUpperCase() : null,
+          sigla: sigla,
           total: result.total,
           returned: result.returned,
           pagination: {

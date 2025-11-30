@@ -75,15 +75,28 @@ export async function getPSDData(query?: PSDQuery): Promise<{
 
   if (query?.estado) {
     const estadoLower = query.estado.toLowerCase();
-    const indices = psdData.indices.byEstado?.[query.estado];
-    if (indices && indices.length > 0) {
-      if (query.dataset_id || query.ano !== undefined || query.biome) {
-        filteredRecords = filteredRecords.filter(r => r.estado?.toLowerCase() === estadoLower);
+    // Tenta encontrar o estado no índice (case-insensitive)
+    let estadoKey: string | undefined;
+    if (psdData.indices.byEstado) {
+      estadoKey = Object.keys(psdData.indices.byEstado).find(
+        key => key.toLowerCase() === estadoLower
+      );
+    }
+    
+    if (estadoKey) {
+      const indices = psdData.indices.byEstado[estadoKey];
+      if (indices && indices.length > 0) {
+        if (query.dataset_id || query.ano !== undefined || query.biome) {
+          filteredRecords = filteredRecords.filter(r => r.estado?.toLowerCase() === estadoLower);
+        } else {
+          filteredRecords = indices.map(i => psdData.data[i]);
+        }
       } else {
-        filteredRecords = indices.map(i => psdData.data[i]);
+        filteredRecords = [];
       }
     } else {
-      filteredRecords = [];
+      // Se não encontrou no índice, filtra diretamente nos dados
+      filteredRecords = filteredRecords.filter(r => r.estado?.toLowerCase() === estadoLower);
     }
   }
 
@@ -145,15 +158,28 @@ export async function getAllPSDData(query?: Omit<PSDQuery, 'limit' | 'offset'>):
 
   if (query?.estado) {
     const estadoLower = query.estado.toLowerCase();
-    const indices = psdData.indices.byEstado?.[query.estado];
-    if (indices && indices.length > 0) {
-      if (query.dataset_id || query.ano !== undefined || query.biome) {
-        filteredRecords = filteredRecords.filter(r => r.estado?.toLowerCase() === estadoLower);
+    // Tenta encontrar o estado no índice (case-insensitive)
+    let estadoKey: string | undefined;
+    if (psdData.indices.byEstado) {
+      estadoKey = Object.keys(psdData.indices.byEstado).find(
+        key => key.toLowerCase() === estadoLower
+      );
+    }
+    
+    if (estadoKey) {
+      const indices = psdData.indices.byEstado[estadoKey];
+      if (indices && indices.length > 0) {
+        if (query.dataset_id || query.ano !== undefined || query.biome) {
+          filteredRecords = filteredRecords.filter(r => r.estado?.toLowerCase() === estadoLower);
+        } else {
+          filteredRecords = indices.map(i => psdData.data[i]);
+        }
       } else {
-        filteredRecords = indices.map(i => psdData.data[i]);
+        filteredRecords = [];
       }
     } else {
-      filteredRecords = [];
+      // Se não encontrou no índice, filtra diretamente nos dados
+      filteredRecords = filteredRecords.filter(r => r.estado?.toLowerCase() === estadoLower);
     }
   }
 
