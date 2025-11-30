@@ -184,6 +184,7 @@ export interface PSDRecord {
   biome: string | null;
   estado: string | null;
   municipio: string | null;
+  regiao: string | null;
 }
 
 export interface PSDPlatformData {
@@ -199,6 +200,7 @@ export interface PSDPlatformData {
     byBiome: Record<string, number[]>;
     byEstado: Record<string, number[]>;
     byMunicipio: Record<string, number[]>;
+    byRegiao: Record<string, number[]>;
   };
 }
 
@@ -208,6 +210,7 @@ export interface PSDQuery {
   biome?: string;
   estado?: string;
   municipio?: string;
+  regiao?: string;
   limit?: number;
   offset?: number;
 }

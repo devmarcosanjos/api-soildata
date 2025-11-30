@@ -4,6 +4,7 @@ import { handleError } from '../utils/errorHandler.js';
 import { getAvailableBiomes } from '../utils/biome-classifier.js';
 import { getAvailableStates, getStateNameFromSigla } from '../utils/state-classifier.js';
 import { getAvailableMunicipalities } from '../utils/municipality-classifier.js';
+import { getAvailableRegions } from '../utils/region-classifier.js';
 import type { PSDQuery } from '../types/index.js';
 
 export async function psdPlatformRoutes(
@@ -39,6 +40,7 @@ export async function psdPlatformRoutes(
             biome: request.query.biome || null,
             estado: request.query.estado || null,
             municipio: request.query.municipio || null,
+            regiao: request.query.regiao || null,
           },
           data: result.data,
         };
@@ -72,6 +74,7 @@ export async function psdPlatformRoutes(
             biome: request.query.biome || null,
             estado: request.query.estado || null,
             municipio: request.query.municipio || null,
+            regiao: request.query.regiao || null,
           },
           data: result.data,
         };
@@ -420,6 +423,120 @@ export async function psdPlatformRoutes(
       };
     } catch (error) {
       return handleError(reply, error, 'Erro ao buscar municípios disponíveis', fastify.log);
+    }
+  });
+
+  fastify.get<{ Params: { regiao: string }; Querystring: Omit<PSDQuery, 'regiao' | 'limit' | 'offset'> }>(
+    '/regiao/:regiao',
+    async (request: FastifyRequest<{ Params: { regiao: string }; Querystring: Omit<PSDQuery, 'regiao' | 'limit' | 'offset'> }>, reply: FastifyReply) => {
+      try {
+        const regiaoParam = decodeURIComponent(request.params.regiao);
+        
+        let query = { ...request.query };
+        
+        // Se estado for uma sigla (2 caracteres ou menos), converte para nome
+        if (query.estado && query.estado.length <= 2) {
+          const stateName = getStateNameFromSigla(query.estado);
+          if (stateName) {
+            query.estado = stateName;
+          }
+        }
+        
+        const result = await getAllPSDData({
+          ...query,
+          regiao: regiaoParam,
+        });
+        
+        if (result.total === 0) {
+          return reply.status(404).send({
+            success: false,
+            error: 'Região não encontrada',
+            message: `Nenhum registro encontrado para a região "${regiaoParam}"`,
+          });
+        }
+        
+        return {
+          success: true,
+          regiao: regiaoParam,
+          total: result.total,
+          filters: {
+            dataset_id: request.query.dataset_id || null,
+            ano: request.query.ano || null,
+            biome: request.query.biome || null,
+            estado: query.estado || null,
+            municipio: request.query.municipio || null,
+          },
+          data: result.data,
+        };
+      } catch (error) {
+        return handleError(reply, error, 'Erro ao buscar dados PSD platform por região', fastify.log);
+      }
+    }
+  );
+
+  fastify.get<{ Params: { regiao: string }; Querystring: Omit<PSDQuery, 'regiao'> }>(
+    '/regiao/:regiao/paginated',
+    async (request: FastifyRequest<{ Params: { regiao: string }; Querystring: Omit<PSDQuery, 'regiao'> }>, reply: FastifyReply) => {
+      try {
+        const regiaoParam = decodeURIComponent(request.params.regiao);
+        
+        let query = { ...request.query };
+        
+        // Se estado for uma sigla (2 caracteres ou menos), converte para nome
+        if (query.estado && query.estado.length <= 2) {
+          const stateName = getStateNameFromSigla(query.estado);
+          if (stateName) {
+            query.estado = stateName;
+          }
+        }
+        
+        const result = await getPSDData({
+          ...query,
+          regiao: regiaoParam,
+        });
+        
+        if (result.total === 0) {
+          return reply.status(404).send({
+            success: false,
+            error: 'Região não encontrada',
+            message: `Nenhum registro encontrado para a região "${regiaoParam}"`,
+          });
+        }
+        
+        return {
+          success: true,
+          regiao: regiaoParam,
+          total: result.total,
+          returned: result.returned,
+          pagination: {
+            limit: request.query.limit || 100,
+            offset: request.query.offset || 0,
+          },
+          filters: {
+            dataset_id: request.query.dataset_id || null,
+            ano: request.query.ano || null,
+            biome: request.query.biome || null,
+            estado: query.estado || null,
+            municipio: request.query.municipio || null,
+          },
+          data: result.data,
+        };
+      } catch (error) {
+        return handleError(reply, error, 'Erro ao buscar dados PSD platform por região (paginado)', fastify.log);
+      }
+    }
+  );
+
+  fastify.get('/regioes', async (_request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const regioes = getAvailableRegions();
+      return {
+        success: true,
+        regioes,
+        total: regioes.length,
+      };
+    } catch (error) {
+      return handleError(reply, error, 'Erro ao buscar regiões disponíveis', fastify.log);
     }
   });
 }

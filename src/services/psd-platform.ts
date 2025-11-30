@@ -127,6 +127,33 @@ export async function getPSDData(query?: PSDQuery): Promise<{
     }
   }
 
+  if (query?.regiao) {
+    const regiaoLower = query.regiao.toLowerCase();
+    // Tenta encontrar a região no índice (case-insensitive)
+    let regiaoKey: string | undefined;
+    if (psdData.indices.byRegiao) {
+      regiaoKey = Object.keys(psdData.indices.byRegiao).find(
+        key => key.toLowerCase() === regiaoLower
+      );
+    }
+    
+    if (regiaoKey) {
+      const indices = psdData.indices.byRegiao[regiaoKey];
+      if (indices && indices.length > 0) {
+        if (query.dataset_id || query.ano !== undefined || query.biome || query.estado || query.municipio) {
+          filteredRecords = filteredRecords.filter(r => r.regiao?.toLowerCase() === regiaoLower);
+        } else {
+          filteredRecords = indices.map(i => psdData.data[i]);
+        }
+      } else {
+        filteredRecords = [];
+      }
+    } else {
+      // Se não encontrou no índice, filtra diretamente nos dados
+      filteredRecords = filteredRecords.filter(r => r.regiao?.toLowerCase() === regiaoLower);
+    }
+  }
+
   const limit = Math.min(query?.limit || 100, 1000);
   const offset = query?.offset || 0;
   const start = offset;
@@ -234,6 +261,33 @@ export async function getAllPSDData(query?: Omit<PSDQuery, 'limit' | 'offset'>):
     } else {
       // Se não encontrou no índice, filtra diretamente nos dados
       filteredRecords = filteredRecords.filter(r => r.municipio?.toLowerCase() === municipioLower);
+    }
+  }
+
+  if (query?.regiao) {
+    const regiaoLower = query.regiao.toLowerCase();
+    // Tenta encontrar a região no índice (case-insensitive)
+    let regiaoKey: string | undefined;
+    if (psdData.indices.byRegiao) {
+      regiaoKey = Object.keys(psdData.indices.byRegiao).find(
+        key => key.toLowerCase() === regiaoLower
+      );
+    }
+    
+    if (regiaoKey) {
+      const indices = psdData.indices.byRegiao[regiaoKey];
+      if (indices && indices.length > 0) {
+        if (query.dataset_id || query.ano !== undefined || query.biome || query.estado || query.municipio) {
+          filteredRecords = filteredRecords.filter(r => r.regiao?.toLowerCase() === regiaoLower);
+        } else {
+          filteredRecords = indices.map(i => psdData.data[i]);
+        }
+      } else {
+        filteredRecords = [];
+      }
+    } else {
+      // Se não encontrou no índice, filtra diretamente nos dados
+      filteredRecords = filteredRecords.filter(r => r.regiao?.toLowerCase() === regiaoLower);
     }
   }
 
