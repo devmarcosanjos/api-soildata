@@ -1,4 +1,3 @@
-// Tipos de Dataset
 export interface Dataset {
   title: string;
   authors: string[];
@@ -9,7 +8,6 @@ export interface Dataset {
   url: string;
 }
 
-// Tipos de Métricas
 export interface MetricCount {
   count: number;
 }
@@ -62,7 +60,6 @@ export interface MetricsApiParams {
   country?: string;
 }
 
-// Tipos de Dados de Solo (formato compacto do JSON)
 export interface EnrichedPoint {
   id: string;
   lon: number; // longitude
@@ -91,7 +88,6 @@ export interface EnrichedSoilData {
   points: EnrichedPoint[];
 }
 
-// Tipos de Query Parameters
 export interface DatasetsQuery {
   limit?: number;
   offset?: number;
@@ -109,7 +105,6 @@ export interface SoilDataQuery {
   datasetCode?: string;
 }
 
-// Tipos de Resposta da API
 export interface ApiSuccessResponse<T> {
   success: true;
   data?: T;
@@ -131,7 +126,6 @@ export interface ApiErrorResponse {
 
 export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
 
-// Tipos do Dataverse API
 export interface DataverseContact {
   name?: string;
   affiliation?: string;
@@ -167,50 +161,77 @@ export interface DataverseSearchResponse {
   };
 }
 
-// Tipos de Dados PSD Platform
-export interface PSDRecord {
-  dataset_id: string;
-  observacao_id: string;
-  longitude_grau: number;
-  latitude_grau: number;
-  ano: number;
-  camada_id: number;
-  profundidade_inicial_cm: number;
-  profundidade_final_cm: number;
-  fracao_grossa_gkg: number;
-  fracao_argila_gkg: number;
-  fracao_silte_gkg: number;
-  fracao_areia_gkg: number;
+export interface GranulometryRecord {
+  datasetId: string;
+  observationId: string;
+  longitude: number;
+  latitude: number;
+  layerId: number;
+  depthInitial: number;
+  depthFinal: number;
+  coarseFraction: number;
+  clayFraction: number;
+  siltFraction: number;
+  sandFraction: number;
   biome: string | null;
-  estado: string | null;
-  municipio: string | null;
-  regiao: string | null;
+  state: string | null;
+  region: string | null;
+  municipality: string | null;
 }
 
-export interface PSDPlatformData {
+export interface GranulometryData {
   metadata: {
     total: number;
     source: string;
     generatedAt: string;
+    uniqueDatasets: number;
+    uniqueBiomes: number;
+    uniqueStates: number;
+    uniqueRegions: number;
+    uniqueMunicipalities: number;
   };
-  data: PSDRecord[];
+  data: GranulometryRecord[];
   indices: {
     byDataset: Record<string, number[]>;
-    byYear: Record<number, number[]>;
     byBiome: Record<string, number[]>;
-    byEstado: Record<string, number[]>;
-    byMunicipio: Record<string, number[]>;
-    byRegiao: Record<string, number[]>;
+    byState: Record<string, number[]>;
+    byRegion: Record<string, number[]>;
+    byMunicipality: Record<string, number[]>;
+    byLayer: Record<number, number[]>;
   };
 }
 
-export interface PSDQuery {
-  dataset_id?: string;
-  ano?: number;
+export interface GranulometryQuery {
+  datasetId?: string;
   biome?: string;
-  estado?: string;
-  municipio?: string;
-  regiao?: string;
+  state?: string;
+  region?: string;
+  municipality?: string;
+  layerId?: number;
+  limit?: number;
+  offset?: number;
+  sortBy?: 'datasetId' | 'observationId' | 'longitude' | 'latitude' | 'layerId' | 'depthInitial' | 'depthFinal' | 'clayFraction' | 'siltFraction' | 'sandFraction';
+  sortOrder?: 'asc' | 'desc';
+  minDepth?: number;
+  maxDepth?: number;
+  minLatitude?: number;
+  maxLatitude?: number;
+  minLongitude?: number;
+  maxLongitude?: number;
+  minClayFraction?: number;
+  maxClayFraction?: number;
+  minSiltFraction?: number;
+  maxSiltFraction?: number;
+  minSandFraction?: number;
+  maxSandFraction?: number;
+}
+
+export interface GranulometryFractionQuery {
+  fraction: 'clay' | 'silt' | 'sand' | 'coarse';
+  biome?: string;
+  region?: string;
+  state?: string;
+  municipality?: string;
   limit?: number;
   offset?: number;
 }

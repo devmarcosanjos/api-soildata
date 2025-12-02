@@ -1,0 +1,55 @@
+// ORDENACAO
+GET http://localhost:3000/api/granulometry?sortBy=clayFraction&sortOrder=desc
+
+
+### FILTROS 
+GET http://localhost:3000/api/granulometry?biome=Mata%20Atlântica&state=Rio%20Grande%20Do%20Sul
+
+### PAGINACAO
+GET http://localhost:3000/api/granulometry?limit=10&offset=0
+
+### FILTROS E ORDENACAO
+GET http://localhost:3000/api/granulometry?biome=Mata%20Atlântica&state=Rio%20Grande%20Do%20Sul&sortBy=clayFraction&sortOrder=desc
+
+### FILTROS E ORDENACAO E PAGINACAO
+GET http://localhost:3000/api/granulometry?biome=Mata%20Atlântica&state=Rio%20Grande%20Do%20Sul&sortBy=clayFraction&sortOrder=desc&limit=10&offset=0
+
+### ============================================
+### ENDPOINT DE ANÁLISE DE FRAÇÕES
+### ============================================
+
+### TODOS OS DADOS DO BRASIL - Fração Argila
+GET http://localhost:3000/api/granulometry/fractions?fraction=clay
+
+### TODOS OS DADOS DO BRASIL - Fração Silte
+GET http://localhost:3000/api/granulometry/fractions?fraction=silt
+
+### TODOS OS DADOS DO BRASIL - Fração Areia
+GET http://localhost:3000/api/granulometry/fractions?fraction=sand
+
+### TODOS OS DADOS DO BRASIL - Fração Grossa
+GET http://localhost:3000/api/granulometry/fractions?fraction=coarse
+
+### FILTRO POR BIOMA - Fração Argila
+GET http://localhost:3000/api/granulometry/fractions?fraction=clay&biome=Mata%20Atlântica
+
+### FILTRO POR REGIÃO - Fração Silte
+GET http://localhost:3000/api/granulometry/fractions?fraction=silt&region=Sul
+
+### FILTRO POR ESTADO - Fração Areia
+GET http://localhost:3000/api/granulometry/fractions?fraction=sand&state=Rio%20Grande%20Do%20Sul
+
+### FILTRO POR MUNICÍPIO - Fração Argila
+GET http://localhost:3000/api/granulometry/fractions?fraction=clay&municipality=Santa%20Maria%20-%20RS%20-%204316907
+
+### FILTRO COMBINADO - BIOMA + ESTADO - Fração Silte
+GET http://localhost:3000/api/granulometry/fractions?fraction=silt&biome=Mata%20Atlântica&state=Rio%20Grande%20Do%20Sul
+
+### FILTRO COMBINADO - REGIÃO + ESTADO - Fração Areia
+GET http://localhost:3000/api/granulometry/fractions?fraction=sand&region=Sul&state=Paraná
+
+### PAGINAÇÃO - Fração Argila (primeira página)
+GET http://localhost:3000/api/granulometry/fractions?fraction=clay&limit=50&offset=0
+
+### PAGINAÇÃO - Fração Silte com filtro (segunda página)
+GET http://localhost:3000/api/granulometry/fractions?fraction=silt&biome=Mata%20Atlântica&limit=50&offset=50

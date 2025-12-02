@@ -1,0 +1,31 @@
+export const granulometryQuerySchema = {
+  type: 'object',
+  properties: {
+    datasetId: { type: 'string' },
+    biome: { type: 'string' },
+    state: { type: 'string' },
+    region: { type: 'string' },
+    municipality: { type: 'string' },
+    layerId: { type: 'number', minimum: 1 },
+    limit: { type: 'number', minimum: 1, maximum: 1000, default: 100 },
+    offset: { type: 'number', minimum: 0, default: 0 },
+    sortBy: {
+      type: 'string',
+      enum: ['datasetId', 'observationId', 'longitude', 'latitude', 'layerId', 'depthInitial', 'depthFinal', 'clayFraction', 'siltFraction', 'sandFraction'],
+    },
+    sortOrder: { type: 'string', enum: ['asc', 'desc'], default: 'asc' },
+    minDepth: { type: 'number', minimum: 0 },
+    maxDepth: { type: 'number', minimum: 0 },
+    minLatitude: { type: 'number', minimum: -90, maximum: 90 },
+    maxLatitude: { type: 'number', minimum: -90, maximum: 90 },
+    minLongitude: { type: 'number', minimum: -180, maximum: 180 },
+    maxLongitude: { type: 'number', minimum: -180, maximum: 180 },
+    minClayFraction: { type: 'number', minimum: 0, maximum: 1000 },
+    maxClayFraction: { type: 'number', minimum: 0, maximum: 1000 },
+    minSiltFraction: { type: 'number', minimum: 0, maximum: 1000 },
+    maxSiltFraction: { type: 'number', minimum: 0, maximum: 1000 },
+    minSandFraction: { type: 'number', minimum: 0, maximum: 1000 },
+    maxSandFraction: { type: 'number', minimum: 0, maximum: 1000 },
+  },
+} as const;
+

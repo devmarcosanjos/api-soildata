@@ -1,21 +1,23 @@
-import { FastifyReply, FastifyLoggerInstance } from 'fastify';
+import { FastifyReply } from 'fastify';
 
 export function handleError(
   reply: FastifyReply,
   error: unknown,
-  defaultMessage: string,
-  logger?: FastifyLoggerInstance,
-  statusCode: number = 500
-) {
+  message: string,
+  logger?: { error: (msg: unknown) => void }
+): FastifyReply {
   if (logger) {
     logger.error(error);
   }
-  const message = error instanceof Error ? error.message : defaultMessage;
-  reply.code(statusCode);
-  return {
+
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  const statusCode = 500;
+
+  return reply.status(statusCode).send({
     success: false,
-    error: defaultMessage,
-    message,
-  };
+    error: message,
+    message: errorMessage,
+    status: statusCode,
+  });
 }
 
